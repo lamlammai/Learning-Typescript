@@ -1,0 +1,8 @@
+.container-wrapper {
+  height: 753px;
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  background-color: #dd85b2;
+}
