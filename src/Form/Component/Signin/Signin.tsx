@@ -18,13 +18,13 @@ interface SignInState {
   };
 }
 const Regex = RegExp(
-  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
 );
 class SignIn extends React.Component<SignInProps, SignInState> {
   handleChange = (event: any) => {
     event.preventDefault();
     const { name, value } = event.target;
-    let errors = this.state.errors;
+    const { errors } = this.state;
     switch (name) {
       case "email":
         errors.email = Regex.test(value) ? "" : "Email is not valid!";
@@ -35,12 +35,11 @@ class SignIn extends React.Component<SignInProps, SignInState> {
         break;
       case "password":
         if (
-          !value.match(/\d/) ||
-          !value.match(/[a-zA-Z]/) ||
-          value.length < 8
+          !value.match(/\d/)
+          || !value.match(/[a-zA-Z]/)
+          || value.length < 8
         ) {
-          errors.password =
-            "Password must contain at least one letter and one number or must be eight characters long";
+          errors.password = "Password must contain at least one letter and one number or must be eight characters long";
         } else {
           errors.password = "";
         }
@@ -55,13 +54,10 @@ class SignIn extends React.Component<SignInProps, SignInState> {
     event.preventDefault();
     let flagPassword = false;
     let flagEmail = false;
-    flagPassword =
-      this.state.password.length < 8 ||
-      !this.state.password.match(/\d/) ||
-      !this.state.password.match(/[a-zA-Z]/)
-        ? false
-        : true;
-    flagEmail = Regex.test(this.state.email) ? true : false;
+    flagPassword = !(this.state.password.length < 8
+      || !this.state.password.match(/\d/)
+      || !this.state.password.match(/[a-zA-Z]/));
+    flagEmail = !!Regex.test(this.state.email);
     if (flagPassword && flagEmail) {
       // console.log("Login success");
       const data = {
@@ -70,7 +66,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
       };
 
       axios
-        .post(`http://localhost:8000/v1/auth/login`, {
+        .post("http://localhost:8000/v1/auth/login", {
           email: data.email,
           password: data.password,
         })
@@ -91,7 +87,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
           console.log(err);
         });
     } else {
-      let errors = this.state.errors;
+      const { errors } = this.state;
       console.log("dang nhap that bai");
       errors.password = flagPassword
         ? ""
@@ -99,6 +95,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
       errors.email = flagEmail ? "" : "Email is not valid!";
     }
   };
+
   constructor(props: SignInProps) {
     super(props);
     const initialState = {
@@ -112,6 +109,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
     this.state = initialState;
     this.handleChange = this.handleChange.bind(this);
   }
+
   render() {
     const { errors } = this.state;
     return (
@@ -128,7 +126,12 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                 Email
               </label>
               <input type="email" name="email" onChange={this.handleChange} />
-              {errors.email.length > 0 && <span>*{errors.email}</span>}
+              {errors.email.length > 0 && (
+              <span>
+                *
+                {errors.email}
+              </span>
+              )}
             </div>
             <div className="password">
               <label htmlFor="password">
@@ -140,13 +143,20 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                 name="password"
                 onChange={this.handleChange}
               />
-              {errors.password.length > 0 && <span>*{errors.password}</span>}
+              {errors.password.length > 0 && (
+              <span>
+                *
+                {errors.password}
+              </span>
+              )}
             </div>
             <div className="submit">
               <button>Sign In</button>
             </div>
             <p>
-              Chưa có tài khoản? <Link to="/">Sign Up</Link>
+              Chưa có tài khoản?
+              {" "}
+              <Link to="/">Sign Up</Link>
             </p>
           </form>
         </div>

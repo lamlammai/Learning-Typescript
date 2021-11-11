@@ -1,10 +1,9 @@
 import React from "react";
-import "./Style.css";
+import "./Style.scss";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import signup from "../../Assets/Img/signup.png";
-
 import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
+import signup from "../../Assets/Img/signup.png";
 
 interface SignUpProps {
   name?: any;
@@ -27,7 +26,7 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
   handleChange = (event: any) => {
     event.preventDefault();
     const { name, value } = event.target;
-    let errors = this.state.errors;
+    const { errors } = this.state;
     switch (name) {
       case "name":
         errors.name = value.length < 5 ? "name must be 5 characters long!" : "";
@@ -62,20 +61,20 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
 
     // console.log(value);
   };
+
   handleSubmit = (event: any) => {
     event.preventDefault();
     // console.log(this.state);
     let flagname = false;
     let flagPassword = false;
     let flagEmail = false;
-    flagname = this.state.name.length < 5 ? false : true;
-    flagPassword =
+    flagname = !(this.state.name.length < 5);
+    flagPassword = !(
       this.state.password.length < 8 ||
       !this.state.password.match(/\d/) ||
       !this.state.password.match(/[a-zA-Z]/)
-        ? false
-        : true;
-    flagEmail = Regex.test(this.state.email) ? true : false;
+    );
+    flagEmail = !!Regex.test(this.state.email);
     // console.log({
     //   password: this.state.password,
     //   length: this.state.password.length,
@@ -90,7 +89,7 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
         password: this.state.password,
       };
       axios
-        .post(`http://localhost:8000/v1/auth/register`, {
+        .post("http://localhost:8000/v1/auth/register", {
           name: data.name,
           email: data.email,
           password: data.password,
@@ -108,7 +107,7 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
           console.log(err);
         });
     } else {
-      let errors = this.state.errors;
+      const { errors } = this.state;
       console.log("sai");
       errors.name = flagname ? "" : "name must be 5 characters long!";
       errors.password = flagPassword
@@ -118,6 +117,7 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
     }
     // console.log(this.state);
   };
+
   constructor(props: SignUpProps) {
     super(props);
     const initialState = {
@@ -133,6 +133,7 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
     this.state = initialState;
     this.handleChange = this.handleChange.bind(this);
   }
+
   render() {
     const { errors } = this.state;
     return (
@@ -143,7 +144,7 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
         <div className="form-wrapper">
           <h2>Sign Up</h2>
           <form onSubmit={this.handleSubmit} noValidate>
-            <div className="name">
+            <div className="username">
               <label htmlFor="name">
                 <UserOutlined />
                 Full Name
