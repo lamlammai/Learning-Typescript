@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
 import signup from "../../Assets/Img/signup.png";
-
+import Cookies from "universal-cookie";
+const cookies = new Cookies();
 interface SignUpProps {
   name?: any;
   value?: any;
@@ -75,12 +76,7 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
       !this.state.password.match(/[a-zA-Z]/)
     );
     flagEmail = !!Regex.test(this.state.email);
-    // console.log({
-    //   password: this.state.password,
-    //   length: this.state.password.length,
-    //   check1: this.state.password.match(/\d/),
-    //   check2: this.state.password.match(/[a-zA-Z]/),
-    // });
+
     if (flagname && flagPassword && flagEmail) {
       // console.log("Login success");
       const data = {
@@ -99,16 +95,24 @@ class SignUp extends React.Component<SignUpProps, SignUpState> {
             // console.log(res.data);
             localStorage.setItem("user", JSON.stringify(res.data.user));
             // console.log(res.data.user.role);
-            sessionStorage.setItem("tokens", JSON.stringify(res.data.tokens));
-            // localStorage.setItem('expired_at', expired_at);
+            cookies.set(
+              "access_token",
+              JSON.stringify(res.data.tokens.access.token)
+            );
+            cookies.set(
+              "refresh_token",
+              JSON.stringify(res.data.tokens.refresh.token)
+            );
+            window.location.assign("http://localhost:3000/list");
           }
         })
         .catch((err) => {
-          console.log(err);
+          if (err.code == 400) {
+            alert("Trùng email");
+          }
         });
     } else {
       const { errors } = this.state;
-      console.log("sai");
       errors.name = flagname ? "" : "name must be 5 characters long!";
       errors.password = flagPassword
         ? ""

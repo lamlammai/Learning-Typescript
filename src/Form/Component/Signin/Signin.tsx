@@ -1,14 +1,19 @@
 import React from "react";
+import axios from "axios";
+import Cookies from "universal-cookie";
+
+import signup from "../../Assets/Img/signup.png";
 import { Link, Redirect } from "react-router-dom";
 import { MailOutlined, LockOutlined } from "@ant-design/icons";
-import axios from "axios";
-import signup from "../../Assets/Img/signup.png";
-// import List from "../ListUser/List";
+import List from "../ListUser/List";
+
+const cookies = new Cookies();
 
 interface SignInProps {
   name?: any;
   value?: any;
 }
+
 interface SignInState {
   email: string;
   password: string;
@@ -17,9 +22,11 @@ interface SignInState {
     password: string;
   };
 }
+
 const Regex = RegExp(
-  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 );
+
 class SignIn extends React.Component<SignInProps, SignInState> {
   handleChange = (event: any) => {
     event.preventDefault();
@@ -35,11 +42,12 @@ class SignIn extends React.Component<SignInProps, SignInState> {
         break;
       case "password":
         if (
-          !value.match(/\d/)
-          || !value.match(/[a-zA-Z]/)
-          || value.length < 8
+          !value.match(/\d/) ||
+          !value.match(/[a-zA-Z]/) ||
+          value.length < 8
         ) {
-          errors.password = "Password must contain at least one letter and one number or must be eight characters long";
+          errors.password =
+            "Password must contain at least one letter and one number or must be eight characters long";
         } else {
           errors.password = "";
         }
@@ -54,17 +62,17 @@ class SignIn extends React.Component<SignInProps, SignInState> {
     event.preventDefault();
     let flagPassword = false;
     let flagEmail = false;
-    flagPassword = !(this.state.password.length < 8
-      || !this.state.password.match(/\d/)
-      || !this.state.password.match(/[a-zA-Z]/));
+    flagPassword = !(
+      this.state.password.length < 8 ||
+      !this.state.password.match(/\d/) ||
+      !this.state.password.match(/[a-zA-Z]/)
+    );
     flagEmail = !!Regex.test(this.state.email);
     if (flagPassword && flagEmail) {
-      // console.log("Login success");
       const data = {
         email: this.state.email,
         password: this.state.password,
       };
-
       axios
         .post("http://localhost:8000/v1/auth/login", {
           email: data.email,
@@ -72,15 +80,28 @@ class SignIn extends React.Component<SignInProps, SignInState> {
         })
         .then((res) => {
           if (res.status == 200) {
+            // user luu o localstorage nhe, minh chi luu token o cookie
             localStorage.setItem("user", JSON.stringify(res.data.user));
             // console.log(res.data.user.role);
-            sessionStorage.setItem("tokens", JSON.stringify(res.data.tokens));
+            cookies.set(
+              "access_token",
+              JSON.stringify(res.data.tokens.access.token)
+            );
+            cookies.set(
+              "refresh_token",
+              JSON.stringify(res.data.tokens.refresh.token)
+            );
             // Doan nay trong du an thuc te ho se khong xu ly nhu nay, ma ho se dung token de check, nhung minh ga` thi` ta.m nhu na`y truoc
-            if (res.data.user.role == "admin") {
-              window.location.assign("http://localhost:3000/list");
-            } else {
-              // Nguoi dung khong co quyen
-            }
+            // if (res.data.user.role == "admin") {
+            //   // window.location.assign("http://localhost:3000/list");
+            //   <Link to="http://localhost:3000/list" />;
+            // } else {
+            //   // Nguoi dung khong co quyen
+            //   // window.location.assign("http://localhost:3000/list");
+            //   <Link to="http://localhost:3000/list" />;
+            // }
+            // <Link to="/list" />;
+            window.location.assign("http://localhost:3000/list");
           }
         })
         .catch((err) => {
@@ -88,7 +109,6 @@ class SignIn extends React.Component<SignInProps, SignInState> {
         });
     } else {
       const { errors } = this.state;
-      console.log("dang nhap that bai");
       errors.password = flagPassword
         ? ""
         : "Password must be eight characters long! or blah lbah";
@@ -111,7 +131,15 @@ class SignIn extends React.Component<SignInProps, SignInState> {
   }
 
   render() {
+    const session = cookies.get("access_token") || "";
     const { errors } = this.state;
+    if (session) {
+      return (
+        <>
+          <Link to="List">bạn đã đăng nhập, xem danh sách user</Link>
+        </>
+      );
+    }
     return (
       <>
         <div className="form-img">
@@ -126,12 +154,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                 Email
               </label>
               <input type="email" name="email" onChange={this.handleChange} />
-              {errors.email.length > 0 && (
-              <span>
-                *
-                {errors.email}
-              </span>
-              )}
+              {errors.email.length > 0 && <span>*{errors.email}</span>}
             </div>
             <div className="password">
               <label htmlFor="password">
@@ -143,20 +166,15 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                 name="password"
                 onChange={this.handleChange}
               />
-              {errors.password.length > 0 && (
-              <span>
-                *
-                {errors.password}
-              </span>
-              )}
+              {errors.password.length > 0 && <span>*{errors.password}</span>}
             </div>
             <div className="submit">
-              <button>Sign In</button>
+              {/* <Link to="/list"> */}
+              <button type="submit">Sign In</button>
+              {/* </Link> */}
             </div>
             <p>
-              Chưa có tài khoản?
-              {" "}
-              <Link to="/">Sign Up</Link>
+              Chưa có tài khoản? <Link to="/">Sign Up</Link>
             </p>
           </form>
         </div>
